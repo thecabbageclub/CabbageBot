@@ -1,0 +1,11 @@
+bin/
+bin/*
+obj/
+obj/*
+.vs/
+.vs/*
+.idea/*
+.idea
+
+Tools/DeLijn/*.cs
+Tools/LidlPlus/*.cs
