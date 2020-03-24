@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
@@ -12,6 +13,7 @@ using DSharpPlus.VoiceNext;
 using DSharpPlus.VoiceNext.Codec;
 using Newtonsoft.Json;
 using CabbageBot.Commands;
+using CabbageBot.Tools.WowUpdateChecker;
 
 namespace CabbageBot
 {
@@ -28,6 +30,11 @@ namespace CabbageBot
             System.Globalization.CultureInfo customCulture = (System.Globalization.CultureInfo)System.Threading.Thread.CurrentThread.CurrentCulture.Clone();
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
+
+            //init WowUpdateChecker bot
+            var WowBot = new UpdateChecker();
+            Thread wowUpdateThread = new Thread(UpdateChecker.Instance.start);
+            wowUpdateThread.Start();
 
             //execute async
             var prog = new Program();
@@ -55,6 +62,9 @@ namespace CabbageBot
 
             //init
             this.Client = new DiscordClient(cfg);
+
+            //init WowUpdateChecker
+            UpdateChecker.Instance.Client = this.Client;
 
             //handlers
             this.Client.Ready += this.Client_Ready;
@@ -85,9 +95,12 @@ namespace CabbageBot
 
             //Command classes
             //this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
+#if ISFERIB
             this.Commands.RegisterCommands<DeLijnCommands>();
             this.Commands.RegisterCommands<LidlePlusCommands>();
+#endif
             this.Commands.RegisterCommands<BitcoinCommands>();
+            this.Commands.RegisterCommands<WowCommands>();
 
             /*
             var vcfg = new VoiceNextConfiguration
