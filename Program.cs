@@ -95,8 +95,10 @@ namespace CabbageBot
 
             //Command classes
             //this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
+#if ISFERIB
             this.Commands.RegisterCommands<DeLijnCommands>();
             this.Commands.RegisterCommands<LidlePlusCommands>();
+#endif
             this.Commands.RegisterCommands<BitcoinCommands>();
             this.Commands.RegisterCommands<WowCommands>();
 
