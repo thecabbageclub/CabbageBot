@@ -22,7 +22,7 @@ namespace CabbageBot
         public DiscordClient Client { get; set; }
         public CommandsNextModule Commands { get; set; }
         public InteractivityModule Interactivity { get; set; }
-        //public VoiceNextClient Voice { get; set; } //comming soon?
+        public VoiceNextClient Voice { get; set; }
 
         public static void Main(string[] args)
         {
@@ -94,7 +94,6 @@ namespace CabbageBot
             this.Commands.CommandErrored += this.Commands_CommandErrored;
 
             //Command classes
-            //this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
 #if ISFERIB
             this.Commands.RegisterCommands<DeLijnCommands>();
             this.Commands.RegisterCommands<LidlePlusCommands>();
@@ -102,13 +101,15 @@ namespace CabbageBot
             this.Commands.RegisterCommands<BitcoinCommands>();
             this.Commands.RegisterCommands<WowCommands>();
 
-            /*
+            this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
+
+            
             var vcfg = new VoiceNextConfiguration
             {
                 VoiceApplication = VoiceApplication.Music
             };
             this.Voice = this.Client.UseVoiceNext(vcfg);
-            */
+            
 
             //connect!
             await this.Client.ConnectAsync();

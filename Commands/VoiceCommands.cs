@@ -9,7 +9,7 @@ using DSharpPlus.VoiceNext;
 
 namespace CabbageBot.Commands
 {
-    /*
+    
     [Group("qmusic")]
     [Description("Qmusic tool")]
     public class VoiceCommands
@@ -164,5 +164,5 @@ namespace CabbageBot.Commands
                 await ctx.RespondAsync($"An exception occured during playback: `{exc.GetType()}: {exc.Message}`");
         }
     }
-    */
+    
 }
