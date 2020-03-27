@@ -43,6 +43,30 @@ namespace CabbageBot.Commands
             await ctx.RespondAsync(null, false, embed);
         }
 
+        [Command("channel"), Description("User to select a radio channel")]
+        public async Task Channel(CommandContext ctx, int index = -1)
+        {
+            index -= 1; //user gets a +1 view, cuz normal ppl start counting from 1 (instead of 0)
+            if (index == -1)
+            {
+                await ctx.RespondAsync("Please enter a stream number found int ``list``.");
+                return;
+            }
+                
+            if (Qmusic.Instance == null)
+                new Qmusic();
+
+            if(index > -1 && index < Qmusic.Instance.channels.Count)
+            {
+                var split = Qmusic.Instance.channels[index].source.Split('/');
+                await ctx.RespondAsync($"Channel change to ``{split[split.Length - 1].Replace("AAC.aac", "").ToLower()}``");
+            }
+            else
+            {
+                await ctx.RespondAsync($"Invalid channel");
+            }
+        }
+
         [Command("join"), Description("Joins a voice channel.")]
         public async Task Join(CommandContext ctx, DiscordChannel chn = null)
         {
