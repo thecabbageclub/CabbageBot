@@ -14,18 +14,26 @@ namespace CababgeBot.Tools.Qmusic
 {
     class Qmusic
     {
+        public static Qmusic Instance { get; set; }
+
         private RestClient web { get; set; }
+        private RestClient webq { get; set; }
         private string uuid = "idfa:9FBA1A63-9417-47D8-9C8D-BD1D56EE7C9D"; 
         private string appname = "rp_qmusic_app";
         private string dist = "dpg";
         private string sessionid = "34F117AB-A1C9-4D32-81EE-75CF87B58C01"; //Hmmm, might get hacked if this gets on git
-
+        public List<Aac> channels { get; set; }
         public bool isPlaying { get; set; }
+
         public Qmusic()
         {
+            Instance = this;
             this.web = new RestClient("https://playerservices.streamtheworld.com/");
+            this.webq = new RestClient("https://api.qmusic.be/");
             this.web.UserAgent = "AppleCoreMedia/1.0.0.16G77 (iPhone; U; CPU OS 12_4 like Mac OS X; nl_be)";
+            this.webq.UserAgent = "AppleCoreMedia/1.0.0.16G77 (iPhone; U; CPU OS 12_4 like Mac OS X; nl_be)";
             this.web.FollowRedirects = false;
+            GetStreamsList();
         }
 
         public string GetStreamURL()
@@ -103,6 +111,28 @@ namespace CababgeBot.Tools.Qmusic
             return;
         }
 
+        public List<Aac> GetStreamsList()
+        {
+            var request = new RestRequest($"2.4/app/channels", Method.GET);
+            //confHeader(ref request);
+
+            var response = this.webq.Execute(request);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                return null;
+            var result = JsonConvert.DeserializeObject<channelsResponse>(response.Content);
+
+            List<Aac> aacStreams = new List<Aac>();
+            foreach (var d in result.data)
+            {
+                if (d.data != null && d.data.streams != null && d.data.streams.aac != null)
+                {
+                    aacStreams.Add(d.data.streams.aac.FirstOrDefault());
+                }
+            }
+            this.channels = aacStreams;
+            return this.channels;
+        }
         private void confHeader(ref RestRequest request)
         {
             request.AddHeader("Host", "playerservices.streamtheworld.com");

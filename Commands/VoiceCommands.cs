@@ -6,6 +6,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.VoiceNext;
+using CababgeBot.Tools.Qmusic;
 
 namespace CabbageBot.Commands
 {
@@ -14,10 +15,34 @@ namespace CabbageBot.Commands
     [Description("Qmusic tool")]
     public class VoiceCommands
     {
-        //TODO: Reverse Engineer QMusic radio so this bot wil proxy the data to a voice channel,
-        //      The code below is from DSharpPlus.Example, lets stick with it for now.
-        
-            
+        private static DateTime LastStreamsListUpdate = DateTime.MinValue;
+
+        [Command("list"), Description("Lists all available radio streams")]
+        public async Task List(CommandContext ctx)
+        {
+            if (Qmusic.Instance == null)
+                new Qmusic();
+
+            if(LastStreamsListUpdate.AddHours(1) < DateTime.UtcNow)
+                Qmusic.Instance.GetStreamsList();
+
+            string listString = "";
+
+            for(int i = 0; i < Qmusic.Instance.channels.Count; i++)
+            {
+                var split = Qmusic.Instance.channels[i].source.Split('/');
+                listString += $"{(i+1).ToString("00")} - {split[split.Length - 1].Replace("AAC.aac","").ToLower()}\n";
+            }
+
+            var embed = new DiscordEmbedBuilder
+            {
+                Title = "QMusic Channel List",
+                Description = listString,
+                Color = DiscordColor.Red
+            };
+            await ctx.RespondAsync(null, false, embed);
+        }
+
         [Command("join"), Description("Joins a voice channel.")]
         public async Task Join(CommandContext ctx, DiscordChannel chn = null)
         {
