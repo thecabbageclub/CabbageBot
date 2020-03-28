@@ -85,14 +85,10 @@ namespace CababgeBot.Tools.Qmusic
             writer.Write(requestString);
             writer.Flush();
 
-            DateTime BDStart;
-            DateTime BDEnd;
-
             var psi = new ProcessStartInfo
             {
                 FileName = "ffmpeg.exe",
                 Arguments = $@"-i - -ac 2 -f s16le -ar 48000 pipe:1",
-                //Arguments = $@"-i - -ac 2 -f s16le -codec:a aac -ar 48000 out.mp3",
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
                 UseShellExecute = false
@@ -119,48 +115,14 @@ namespace CababgeBot.Tools.Qmusic
                 }
             });
 
-            byte[] buf = new byte[8192 * 16]; //7820 b/second?
+            byte[] buf = new byte[8192 * 16];
             while (isPlaying)
             {
-
-                BDStart = DateTime.Now;
-                //stream.ReadAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
-
-                //var psi = new ProcessStartInfo
-                //{
-                //    FileName = "ffmpeg.exe",
-                //    Arguments = $@"-i ""{filename}"" -ac 2 -f s16le -ar 48000 pipe:1",
-                //    RedirectStandardOutput = true,
-                //    UseShellExecute = false
-                //};
-                //var ffmpeg = Process.Start(psi);
-                //var ffout = ffmpeg.StandardOutput.BaseStream;
-
-
-
-                //stream.CopyTo(ffmpeg.StandardInput.BaseStream, 512);
-
                 var ffout = ffmpeg.StandardOutput.BaseStream;
 
-                //stream.CopyTo(vstream, buffer.Length);
                 var lenread = ffout.Read(buf, 0, buf.Length);
                 vstream.Write(buf, 0, lenread);
-
-                //vstream.Flush();
-                //vstream.WriteAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
-                //vstream.FlushAsync().GetAwaiter().GetResult();
-
-                //foreach(var b in buffer)
-                //{
-                //    Console.Write(b.ToString("X2") + "");
-                //}
-                //Console.WriteLine();
-
-                BDEnd = DateTime.Now;
-                //Thread.Sleep(Math.Max((int)((BDStart.AddMilliseconds(1000) - BDEnd).TotalMilliseconds), 0));
-                //Console.WriteLine($"[{DateTime.UtcNow.ToString("dd/MM/yyyy_HH:mm:ss.fff")}]: 1sec downloaded in: {(BDEnd - BDStart).ToString("fff")}");
             }
-            //File.WriteAllBytes($"test_{DateTime.UtcNow.ToString("dd_MM_yyyy_HH-mm")}.mp4", BufferFile.ToArray());
             ctoksrc.Cancel();
             stream.Close();
             writer.Close();
