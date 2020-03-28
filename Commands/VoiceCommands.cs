@@ -21,6 +21,8 @@ namespace CabbageBot.Commands
     {
         private static DateTime LastStreamsListUpdate = DateTime.MinValue;
         private static Dictionary<ulong, int> ChannelStreamSettings = new Dictionary<ulong, int>();
+        private static Dictionary<ulong, bool> ChannelStreamPlaying = new Dictionary<ulong, bool>();
+
         public async Task ExecuteGroupAsync(CommandContext ctx)
         {
             await ctx.RespondAsync("The following sub commands are available: ``list``, ``channel``, ``join``, ``leave``, ``play``");
@@ -56,7 +58,6 @@ namespace CabbageBot.Commands
         [Command("channel"), Description("User to select a radio channel")]
         public async Task Channel(CommandContext ctx, int index = -1)
         {
-            
             if (index == -1)
             {
                 await ctx.RespondAsync("Please enter a channel ID from the ``list`` command");
@@ -68,15 +69,20 @@ namespace CabbageBot.Commands
             if (Qmusic.Instance == null)
                 new Qmusic();
 
-            if(index > -1 && index < Qmusic.Instance.channels.Count)
+            if (index > -1 && index < Qmusic.Instance.channels.Count)
             {
-                if (ChannelStreamSettings.ContainsKey(ctx.Guild.Id))
-                    ChannelStreamSettings.Remove(ctx.Guild.Id);
+                //stop playing
+                if (ChannelStreamPlaying.ContainsKey(ctx.Guild.Id))
+                    ChannelStreamPlaying[ctx.Guild.Id] = false;
 
-                ChannelStreamSettings.Add(ctx.Guild.Id, index);
+                if (ChannelStreamSettings.ContainsKey(ctx.Guild.Id))
+                    ChannelStreamSettings[ctx.Guild.Id] = index;
+                else
+                    ChannelStreamSettings.Add(ctx.Guild.Id, index);
 
                 var split = Qmusic.Instance.channels[index].source.Split('/');
                 await ctx.RespondAsync($"Channel change to ``{split[split.Length - 1].Replace("AAC.aac", "").ToLower()}``");
+
             }
             else
             {
@@ -144,6 +150,9 @@ namespace CabbageBot.Commands
                 return;
             }
 
+            if (ChannelStreamPlaying.ContainsKey(ctx.Guild.Id))
+                ChannelStreamPlaying[ctx.Guild.Id] = false;
+
             // disconnect
             vnc.Disconnect();
             await ctx.RespondAsync("Disconnected");
@@ -170,6 +179,18 @@ namespace CabbageBot.Commands
                 return;
             }
 
+
+            if (!ChannelStreamPlaying.ContainsKey(ctx.Guild.Id))
+                ChannelStreamPlaying.Add(ctx.Guild.Id, false);
+            else if (ChannelStreamPlaying[ctx.Guild.Id])
+            {
+                Thread.Sleep(1000); //Sleep 1 sec to make sure other thread exits?
+                ChannelStreamPlaying[ctx.Guild.Id] = false;
+            }
+                
+
+            //
+
             // play
             Exception exc = null;
 
@@ -177,37 +198,15 @@ namespace CabbageBot.Commands
             {
                 await vnc.SendSpeakingAsync(true);
 
-
-                //var psi = new ProcessStartInfo
-                //{
-                //    FileName = "ffmpeg.exe",
-                //    Arguments = $@"-i ""{filename}"" -ac 2 -f s16le -ar 48000 pipe:1",
-                //    RedirectStandardOutput = true,
-                //    UseShellExecute = false
-                //};
-                //var ffmpeg = Process.Start(psi);
-                //var ffout = ffmpeg.StandardOutput.BaseStream;
-
-                //var txStream = vnc.GetTransmitStream();
-                //await ffout.CopyToAsync(txStream);
-                //await txStream.FlushAsync();
-
-                //List<byte> buffer = new List<byte>();
-                //NetworkStream strm = null;
-                //bool isPlaying = true;
-
-                //Qmusic.Instance.ReadMusicStream(Qmusic.Instance.GetStreamURL(), ref isPlaying, ref buffer, ref strm);
-
-                //var txStream = vnc.GetTransmitStream();
-                //await strm.CopyToAsync(txStream);
-                //await txStream.FlushAsync();
-
                 var txStream = vnc.GetTransmitStream();
 
                 if (Qmusic.Instance == null)
                     new Qmusic();
 
-                bool isPlaying = true;
+                if (!ChannelStreamPlaying.ContainsKey(ctx.Guild.Id))
+                    ChannelStreamPlaying.Add(ctx.Guild.Id, true);
+                else
+                    ChannelStreamPlaying[ctx.Guild.Id] = true;
 
                 string url = "";
 
@@ -216,7 +215,8 @@ namespace CabbageBot.Commands
                 else
                     url = Qmusic.Instance.GetStreamURL();
 
-                await Qmusic.Instance.ReadMusicStream(url, ref isPlaying, ref txStream);
+                var isPlaying = ChannelStreamPlaying[ctx.Guild.Id];
+                await Qmusic.Instance.ReadMusicStream(url, ref ChannelStreamPlaying, ref txStream, ctx.Guild.Id);
 
             }
             catch (Exception ex) { exc = ex; }

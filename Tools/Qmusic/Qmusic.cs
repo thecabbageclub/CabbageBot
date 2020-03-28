@@ -52,7 +52,7 @@ namespace CababgeBot.Tools.Qmusic
             return null;
         }
 
-        public Task ReadMusicStream(string url, ref bool isPlaying, ref VoiceTransmitStream vstream)
+        public Task ReadMusicStream(string url, ref Dictionary<ulong, bool> status, ref VoiceTransmitStream vstream, ulong GuildID)
         {
             this.isPlaying = true;
 
@@ -115,19 +115,23 @@ namespace CababgeBot.Tools.Qmusic
                 }
             });
 
-            byte[] buf = new byte[8192 * 16];
-            while (isPlaying)
+            //byte[] buf = new byte[8192 * 16];
+            byte[] buf = new byte[8192];
+            DateTime startTime = DateTime.UtcNow;   //timeout after 30 min
+
+            while (status.ContainsKey(GuildID) && status[GuildID] && startTime.AddMinutes(30) > DateTime.UtcNow)
             {
                 var ffout = ffmpeg.StandardOutput.BaseStream;
 
                 var lenread = ffout.Read(buf, 0, buf.Length);
                 vstream.Write(buf, 0, lenread);
             }
+            status[GuildID] = false;
             ctoksrc.Cancel();
             stream.Close();
             writer.Close();
             client.Close();
-            return null;
+            return Task.CompletedTask;
         }
 
         public List<Aac> GetStreamsList()
