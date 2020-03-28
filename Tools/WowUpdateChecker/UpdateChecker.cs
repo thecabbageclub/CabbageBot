@@ -51,8 +51,8 @@ namespace CabbageBot.Tools.WowUpdateChecker
                         this.LastUSVersion = newVersions.Find(x => x.Location == "us");
                         foreach (var user in this.SubscriberUsers)
                         {
-                            var newDM = this.Client.CreateDmAsync(this.Client.GetUserAsync(user).GetAwaiter().GetResult()).GetAwaiter().GetResult();
-                            newDM.SendMessageAsync($"World of Warcraft (Retail) has been updated to {this.LastUSVersion.Version} ({this.LastUSVersion.BuildNumber})");
+                            //var newDM = this.Client.CreateDmAsync(this.Client.GetUserAsync(user).GetAwaiter().GetResult()).GetAwaiter().GetResult();
+                            //newDM.SendMessageAsync($"World of Warcraft (Retail) has been updated to {this.LastUSVersion.Version} ({this.LastUSVersion.BuildNumber})");
                         }
                     }
                 }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Generic;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
@@ -10,6 +11,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.VoiceNext;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.VoiceNext.Codec;
 using Newtonsoft.Json;
 using CabbageBot.Commands;
@@ -20,9 +22,9 @@ namespace CabbageBot
     public class Program
     {
         public DiscordClient Client { get; set; }
-        public CommandsNextModule Commands { get; set; }
-        public InteractivityModule Interactivity { get; set; }
-        public VoiceNextClient Voice { get; set; }
+        public CommandsNextExtension Commands { get; set; }
+        public InteractivityExtension Interactivity { get; set; }
+        public VoiceNextExtension Voice { get; set; }
 
         public static void Main(string[] args)
         {
@@ -74,8 +76,8 @@ namespace CabbageBot
             //interactivity
             this.Client.UseInteractivity(new InteractivityConfiguration
             {
-                PaginationBehaviour = TimeoutBehaviour.Ignore,
-                PaginationTimeout = TimeSpan.FromMinutes(5),
+                PaginationBehaviour = DSharpPlus.Interactivity.Enums.PaginationBehaviour.Ignore,
+                //PaginationTimeout = TimeSpan.FromMinutes(5),
                 Timeout = TimeSpan.FromMinutes(2) //2min timeout
             });
 
@@ -83,7 +85,7 @@ namespace CabbageBot
             var ccfg = new CommandsNextConfiguration
             {
 
-                StringPrefix = cfgjson.CommandPrefix,
+                StringPrefixes = new[] { cfgjson.CommandPrefix },
                 EnableDms = true,   //DM's allowed?? might be handy for privacy.. but we cannot check roles....
                 EnableMentionPrefix = true
             };
@@ -96,21 +98,16 @@ namespace CabbageBot
             //Command classes
 #if ISFERIB
             this.Commands.RegisterCommands<DeLijnCommands>();
-            this.Commands.RegisterCommands<LidlePlusCommands>();
+            this.Commands.RegisterCommands<LidlePlusCommands>(); //Try not to get sued here ;)
 #endif
             this.Commands.RegisterCommands<BitcoinCommands>();
             this.Commands.RegisterCommands<WowCommands>();
 
             this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
 
-            
-            var vcfg = new VoiceNextConfiguration
-            {
-                VoiceApplication = VoiceApplication.Music
-            };
-            this.Voice = this.Client.UseVoiceNext(vcfg);
-            
 
+            this.Voice = this.Client.UseVoiceNext();
+            
             //connect!
             await this.Client.ConnectAsync();
 

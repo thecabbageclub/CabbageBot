@@ -11,9 +11,10 @@ using CabbageBot.Tools.WowUpdateChecker;
 
 namespace CabbageBot.Commands
 {
-    [Group("wow", CanInvokeWithoutSubcommand = true)]
+    //[Group("wow", CanInvokeWithoutSubcommand = true)]
+    [Group("wow")]
     [Description("wow tool")]
-    public class WowCommands
+    public class WowCommands : BaseCommandModule
     {
         public async Task ExecuteGroupAsync(CommandContext ctx)
         {
@@ -30,7 +31,7 @@ namespace CabbageBot.Commands
                 userid = ctx.User.Id;
 
             //first retrieve the interactivity module from the client
-            var interactivity = ctx.Client.GetInteractivityModule();
+            var interactivity = ctx.Client.GetInteractivity();
 
             //specify the emoji
             var accept = DiscordEmoji.FromName(ctx.Client, ":white_check_mark:");
@@ -44,13 +45,13 @@ namespace CabbageBot.Commands
             await requestMsg.CreateReactionAsync(reject); //cross
             await Task.Delay(50);
 
-            var em = await interactivity.WaitForReactionAsync(xe => xe == accept || xe == reject, ctx.User, TimeSpan.FromSeconds(10));
-            if (em != null)
+            var em = await interactivity.WaitForReactionAsync(xe => xe.Emoji == accept || xe.Emoji == reject, ctx.User, TimeSpan.FromSeconds(10));
+            if (em.Result != null)
             {
                 if (UpdateChecker.Instance == null)
                     new UpdateChecker();
                 //user reacted
-                if (em.Emoji == accept)
+                if (em.Result.Emoji == accept)
                 {
                     await ctx.RespondAsync("Subscribtion activated!");
                     if (UpdateChecker.Instance.SubscriberUsers.FindIndex(x => x == userid) == -1)

@@ -2,20 +2,30 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.VoiceNext;
 using CababgeBot.Tools.Qmusic;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace CabbageBot.Commands
 {
-    
+
     [Group("qmusic")]
+    //[Group("qmusic", CanInvokeWithoutSubcommand = true)]
     [Description("Qmusic tool")]
-    public class VoiceCommands
+    public class VoiceCommands : BaseCommandModule
     {
         private static DateTime LastStreamsListUpdate = DateTime.MinValue;
+        private static Dictionary<ulong, int> ChannelStreamSettings = new Dictionary<ulong, int>();
+        public async Task ExecuteGroupAsync(CommandContext ctx)
+        {
+            await ctx.RespondAsync("The following sub commands are available: ``list``, ``channel``, ``join``, ``leave``, ``play``");
+        }
+
 
         [Command("list"), Description("Lists all available radio streams")]
         public async Task List(CommandContext ctx)
@@ -46,18 +56,25 @@ namespace CabbageBot.Commands
         [Command("channel"), Description("User to select a radio channel")]
         public async Task Channel(CommandContext ctx, int index = -1)
         {
-            index -= 1; //user gets a +1 view, cuz normal ppl start counting from 1 (instead of 0)
+            
             if (index == -1)
             {
-                await ctx.RespondAsync("Please enter a stream number found int ``list``.");
+                await ctx.RespondAsync("Please enter a channel ID from the ``list`` command");
                 return;
             }
-                
+
+            index -= 1; //user gets a +1 view, cuz normal ppl start counting from 1 (instead of 0)
+
             if (Qmusic.Instance == null)
                 new Qmusic();
 
             if(index > -1 && index < Qmusic.Instance.channels.Count)
             {
+                if (ChannelStreamSettings.ContainsKey(ctx.Guild.Id))
+                    ChannelStreamSettings.Remove(ctx.Guild.Id);
+
+                ChannelStreamSettings.Add(ctx.Guild.Id, index);
+
                 var split = Qmusic.Instance.channels[index].source.Split('/');
                 await ctx.RespondAsync($"Channel change to ``{split[split.Length - 1].Replace("AAC.aac", "").ToLower()}``");
             }
@@ -71,7 +88,7 @@ namespace CabbageBot.Commands
         public async Task Join(CommandContext ctx, DiscordChannel chn = null)
         {
             // check whether VNext is enabled
-            var vnext = ctx.Client.GetVoiceNextClient();
+            var vnext = ctx.Client.GetVoiceNext();
             if (vnext == null)
             {
                 // not enabled
@@ -110,7 +127,7 @@ namespace CabbageBot.Commands
         public async Task Leave(CommandContext ctx)
         {
             // check whether VNext is enabled
-            var vnext = ctx.Client.GetVoiceNextClient();
+            var vnext = ctx.Client.GetVoiceNext();
             if (vnext == null)
             {
                 // not enabled
@@ -133,10 +150,10 @@ namespace CabbageBot.Commands
         }
 
         [Command("play"), Description("Plays Qmusic radio")]
-        public async Task Play(CommandContext ctx, [RemainingText, Description("Full path to the file to play.")] string filename)
+        public async Task Play(CommandContext ctx)
         {
             // check whether VNext is enabled
-            var vnext = ctx.Client.GetVoiceNextClient();
+            var vnext = ctx.Client.GetVoiceNext();
             if (vnext == null)
             {
                 // not enabled
@@ -153,55 +170,54 @@ namespace CabbageBot.Commands
                 return;
             }
 
-            // check if file exists
-            if (!File.Exists(filename))
-            {
-                // file does not exist
-                await ctx.RespondAsync($"File `{filename}` does not exist.");
-                return;
-            }
-
-            // wait for current playback to finish
-            while (vnc.IsPlaying)
-                await vnc.WaitForPlaybackFinishAsync();
-
             // play
             Exception exc = null;
-            await ctx.Message.RespondAsync($"Playing `{filename}`");
-            await vnc.SendSpeakingAsync(true);
+
             try
             {
-                // borrowed from
-                // https://github.com/RogueException/Discord.Net/blob/5ade1e387bb8ea808a9d858328e2d3db23fe0663/docs/guides/voice/samples/audio_create_ffmpeg.cs
+                await vnc.SendSpeakingAsync(true);
 
-                var ffmpeg_inf = new ProcessStartInfo
-                {
-                    FileName = "ffmpeg",
-                    Arguments = $"-i \"{filename}\" -ac 2 -f s16le -ar 48000 pipe:1",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-                var ffmpeg = Process.Start(ffmpeg_inf);
-                var ffout = ffmpeg.StandardOutput.BaseStream;
 
-                // let's buffer ffmpeg output
-                using (var ms = new MemoryStream())
-                {
-                    await ffout.CopyToAsync(ms);
-                    ms.Position = 0;
+                //var psi = new ProcessStartInfo
+                //{
+                //    FileName = "ffmpeg.exe",
+                //    Arguments = $@"-i ""{filename}"" -ac 2 -f s16le -ar 48000 pipe:1",
+                //    RedirectStandardOutput = true,
+                //    UseShellExecute = false
+                //};
+                //var ffmpeg = Process.Start(psi);
+                //var ffout = ffmpeg.StandardOutput.BaseStream;
 
-                    var buff = new byte[3840]; // buffer to hold the PCM data
-                    var br = 0;
-                    while ((br = ms.Read(buff, 0, buff.Length)) > 0)
-                    {
-                        if (br < buff.Length) // it's possible we got less than expected, let's null the remaining part of the buffer
-                            for (var i = br; i < buff.Length; i++)
-                                buff[i] = 0;
+                //var txStream = vnc.GetTransmitStream();
+                //await ffout.CopyToAsync(txStream);
+                //await txStream.FlushAsync();
 
-                        await vnc.SendAsync(buff, 20); // we're sending 20ms of data
-                    }
-                }
+                //List<byte> buffer = new List<byte>();
+                //NetworkStream strm = null;
+                //bool isPlaying = true;
+
+                //Qmusic.Instance.ReadMusicStream(Qmusic.Instance.GetStreamURL(), ref isPlaying, ref buffer, ref strm);
+
+                //var txStream = vnc.GetTransmitStream();
+                //await strm.CopyToAsync(txStream);
+                //await txStream.FlushAsync();
+
+                var txStream = vnc.GetTransmitStream();
+
+                if (Qmusic.Instance == null)
+                    new Qmusic();
+
+                bool isPlaying = true;
+
+                string url = "";
+
+                if (ChannelStreamSettings.ContainsKey(ctx.Guild.Id))
+                    url = Qmusic.Instance.GetStreamURL(ChannelStreamSettings[ctx.Guild.Id]);
+                else
+                    url = Qmusic.Instance.GetStreamURL();
+
+                await Qmusic.Instance.ReadMusicStream(url, ref isPlaying, ref txStream);
+
             }
             catch (Exception ex) { exc = ex; }
             finally
@@ -213,5 +229,4 @@ namespace CabbageBot.Commands
                 await ctx.RespondAsync($"An exception occured during playback: `{exc.GetType()}: {exc.Message}`");
         }
     }
-    
 }

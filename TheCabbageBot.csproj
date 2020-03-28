@@ -10,7 +10,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <Prefer32Bit>true</Prefer32Bit>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -22,10 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="3.2.3" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="3.2.3" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="3.2.3" />
-    <PackageReference Include="DSharpPlus.VoiceNext" Version="3.2.3" />
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00672" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00672" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00672" />
+    <PackageReference Include="DSharpPlus.VoiceNext" Version="4.0.0-nightly-00672" />
     <PackageReference Include="RestSharp" Version="106.10.1" />
   </ItemGroup>
 

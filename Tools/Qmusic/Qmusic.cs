@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using DSharpPlus.VoiceNext;
 
 namespace CababgeBot.Tools.Qmusic
 {
@@ -36,9 +37,14 @@ namespace CababgeBot.Tools.Qmusic
             GetStreamsList();
         }
 
-        public string GetStreamURL()
+        public string GetStreamURL(int index = -1)
         {
-            var request = new RestRequest($"api/livestream-redirect/QMUSICAAC.aac?uuid={uuid}&pname={appname}&dist={dist}", Method.GET);
+            string url = $"api/livestream-redirect/QMUSICAAC.aac?uuid={uuid}&pname={appname}&dist={dist}";
+            if (channels.Count > 0 && index > -1 && index < channels.Count-1)
+            {
+                url = channels[index].source.Replace("https://playerservices.streamtheworld.com/","");
+            }
+            var request = new RestRequest(url, Method.GET);
             confHeader(ref request);
 
             var response = web.Execute(request);
@@ -47,68 +53,76 @@ namespace CababgeBot.Tools.Qmusic
             return null;
         }
 
-        public void ReadMusicStream(string url)
+        public Task ReadMusicStream(string url, ref bool isPlaying, ref VoiceTransmitStream vstream)
         {
             this.isPlaying = true;
 
-            using (TcpClient client = new TcpClient())
+            //string requestString = $"GET /{split[split.Length-1]} HTTP/1.1\r\n";
+
+            string hosteDNS = url.Replace("https://", "").Split('/')[0];
+            var split = url.Split('/');
+            string requestString = $"GET /{split[split.Length - 1]} HTTP/1.1\r\n";
+
+            requestString += $"Host: {hosteDNS}:443\r\n";
+            requestString += $"X-Playback-Session-Id: {sessionid}\r\n";
+            //requestString += "Range: bytes=0-1\r\n"; //LMAO don't use this, will only give 256kb, some kind of special buffer??
+            requestString += "icy-metadata:	1\r\n";
+            requestString += "Accept: */*\r\n";
+            requestString += "User-Agent: AppleCoreMedia/1.0.0.16G77 (iPhone; U; CPU OS 12_4 like Mac OS X; nl_be)\r\n";
+            requestString += "Accept-Language: nl-be\r\n";
+            requestString += "Accept-Encoding: identity\r\n";
+            requestString += "Connection: keep-alive\r\n";
+            requestString += "\r\n";
+
+            TcpClient client = new TcpClient();
+            client.Connect($"{hosteDNS}", 80);
+
+            NetworkStream stream = client.GetStream();
+            //stream = client.GetStream();
+
+            StreamWriter writer = new StreamWriter(stream);
+
+            // Send the request.
+            writer.Write(requestString);
+            writer.Flush();
+
+            DateTime BDStart;
+            DateTime BDEnd;
+
+            while (isPlaying)
             {
+                Thread.Sleep(1500);
+                byte[] buffer = new byte[8192]; //7820 b/second?
 
-                string hosteDNS = url.Replace("https://", "").Split('/')[0];
-                string requestString = $"GET /QMUSICAAC.aac HTTP/1.1\r\n";
-
-                requestString += "Host: unknown:443\r\n";
-                requestString += $"X-Playback-Session-Id: {sessionid}\r\n";
-                requestString += "Range: bytes=0-1\r\n";
-                requestString += "Accept: */*\r\n";
-                requestString += "User-Agent: AppleCoreMedia/1.0.0.16G77 (iPhone; U; CPU OS 12_4 like Mac OS X; nl_be)\r\n";
-                requestString += "Accept-Language: nl-be\r\n";
-                requestString += "Accept-Encoding: identity\r\n";
-                requestString += "Connection: keep-alive\r\n";
-                requestString += "\r\n";
-
-                client.Connect("21263.live.streamtheworld.com", 80);
-
-                using (NetworkStream stream = client.GetStream())
+                while (isPlaying && stream.DataAvailable)
                 {
-                    // Send the request.
-                    StreamWriter writer = new StreamWriter(stream);
-                    writer.Write(requestString);
-                    writer.Flush();
 
-                    StreamReader reader = new StreamReader(stream);
+                    BDStart = DateTime.Now;
+                    stream.ReadAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
 
-                    byte[] buffer = new byte[6800]; //6.8 kb/second?
+                    //stream.CopyTo(vstream, buffer.Length);
 
-                    DateTime StartTime = DateTime.UtcNow;
-
-                    List<byte> BufferFile = new List<byte>();
-                    int count = 0;
-                    while (!reader.EndOfStream && this.isPlaying)
+                    vstream.WriteAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
+                    vstream.FlushAsync().GetAwaiter().GetResult();
+                    
+                    foreach(var b in buffer)
                     {
-                        
-                        stream.Read(buffer, 0, buffer.Length);
-                        BufferFile.AddRange(buffer);
-                        
-                        //send data around
-                        foreach(var b in buffer)
-                        {
-                            Console.Write(b.ToString("X2"));
-                        }
-                        Console.WriteLine();
-
-                        //debugging
-                        if (count > 10)
-                            break;
-                        count++;
-
-                        //if (StartTime.AddSeconds(10) < DateTime.UtcNow)
-                        //    this.isPlaying = false;
+                        Console.Write(b.ToString("X2") + "");
                     }
-                    File.WriteAllBytes("test.mp4", BufferFile.ToArray());
+                    Console.WriteLine();
+
+                    BDEnd = DateTime.Now;
+                    Thread.Sleep(BDStart.AddMilliseconds(1000) - BDEnd);
+                    Console.WriteLine($"[{DateTime.UtcNow.ToString("dd/MM/yyyy_HH:mm:ss.fff")}]: 1sec downloaded in: {(BDEnd - BDStart).ToString("fff")}");
+
                 }
+                Console.WriteLine("buffered");
             }
-            return;
+            //File.WriteAllBytes($"test_{DateTime.UtcNow.ToString("dd_MM_yyyy_HH-mm")}.mp4", BufferFile.ToArray());
+            stream.Close();
+            writer.Close();
+            client.Close();
+            return null;
         }
 
         public List<Aac> GetStreamsList()
