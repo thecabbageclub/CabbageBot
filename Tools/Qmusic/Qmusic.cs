@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using RestSharp;
+﻿using DSharpPlus.VoiceNext;
 using Newtonsoft.Json;
-using System.Linq;
+using RestSharp;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Sockets;
-using DSharpPlus.VoiceNext;
 
 namespace CababgeBot.Tools.Qmusic
 {
@@ -19,7 +18,7 @@ namespace CababgeBot.Tools.Qmusic
 
         private RestClient web { get; set; }
         private RestClient webq { get; set; }
-        private string uuid = "idfa:9FBA1A63-9417-47D8-9C8D-BD1D56EE7C9D"; 
+        private string uuid = "idfa:9FBA1A63-9417-47D8-9C8D-BD1D56EE7C9D";
         private string appname = "rp_qmusic_app";
         private string dist = "dpg";
         private string sessionid = "34F117AB-A1C9-4D32-81EE-75CF87B58C01"; //Hmmm, might get hacked if this gets on git
@@ -39,16 +38,16 @@ namespace CababgeBot.Tools.Qmusic
 
         public string GetStreamURL(int index = -1)
         {
-            string url = $"api/livestream-redirect/QMUSICAAC.aac?uuid={uuid}&pname={appname}&dist={dist}";
-            if (channels.Count > 0 && index > -1 && index < channels.Count-1)
+            string url = $"api/livestream-redirect/QMUSICAAC.aac?uuid={this.uuid}&pname={this.appname}&dist={this.dist}";
+            if (this.channels.Count > 0 && index > -1 && index < this.channels.Count - 1)
             {
-                url = channels[index].source.Replace("https://playerservices.streamtheworld.com/","");
+                url = this.channels[index].source.Replace("https://playerservices.streamtheworld.com/", "");
             }
             var request = new RestRequest(url, Method.GET);
             confHeader(ref request);
 
-            var response = web.Execute(request);
-            if(response.StatusCode == System.Net.HttpStatusCode.Found)
+            var response = this.web.Execute(request);
+            if (response.StatusCode == System.Net.HttpStatusCode.Found)
                 return response.Headers.ToList().Find(x => x.Name == "Location").Value.ToString();
             return null;
         }
@@ -64,7 +63,7 @@ namespace CababgeBot.Tools.Qmusic
             string requestString = $"GET /{split[split.Length - 1]} HTTP/1.1\r\n";
 
             requestString += $"Host: {hosteDNS}:443\r\n";
-            requestString += $"X-Playback-Session-Id: {sessionid}\r\n";
+            requestString += $"X-Playback-Session-Id: {this.sessionid}\r\n";
             //requestString += "Range: bytes=0-1\r\n"; //LMAO don't use this, will only give 256kb, some kind of special buffer??
             requestString += "icy-metadata:	1\r\n";
             requestString += "Accept: */*\r\n";
@@ -89,36 +88,80 @@ namespace CababgeBot.Tools.Qmusic
             DateTime BDStart;
             DateTime BDEnd;
 
+            var psi = new ProcessStartInfo
+            {
+                FileName = "ffmpeg.exe",
+                Arguments = $@"-i - -ac 2 -f s16le -ar 48000 pipe:1",
+                //Arguments = $@"-i - -ac 2 -f s16le -codec:a aac -ar 48000 out.mp3",
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true,
+                UseShellExecute = false
+            };
+
+            var ffmpeg = Process.Start(psi);
+
+            // TODO might be able to remove this
+            ffmpeg.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+            {
+                Console.WriteLine(e.Data);
+            };
+
+            var ctoksrc = new CancellationTokenSource();
+            var ctok = ctoksrc.Token;
+
+            var t = Task.Run(() =>
+            {
+                var buf2 = new byte[1024];
+                while (!ctok.IsCancellationRequested)
+                {
+                    var len = stream.Read(buf2, 0, buf2.Length);
+                    ffmpeg.StandardInput.BaseStream.Write(buf2, 0, len);
+                }
+            });
+
+            byte[] buf = new byte[8192 * 16]; //7820 b/second?
             while (isPlaying)
             {
-                Thread.Sleep(1500);
-                byte[] buffer = new byte[8192]; //7820 b/second?
 
-                while (isPlaying && stream.DataAvailable)
-                {
+                BDStart = DateTime.Now;
+                //stream.ReadAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
 
-                    BDStart = DateTime.Now;
-                    stream.ReadAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
+                //var psi = new ProcessStartInfo
+                //{
+                //    FileName = "ffmpeg.exe",
+                //    Arguments = $@"-i ""{filename}"" -ac 2 -f s16le -ar 48000 pipe:1",
+                //    RedirectStandardOutput = true,
+                //    UseShellExecute = false
+                //};
+                //var ffmpeg = Process.Start(psi);
+                //var ffout = ffmpeg.StandardOutput.BaseStream;
 
-                    //stream.CopyTo(vstream, buffer.Length);
 
-                    vstream.WriteAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
-                    vstream.FlushAsync().GetAwaiter().GetResult();
-                    
-                    foreach(var b in buffer)
-                    {
-                        Console.Write(b.ToString("X2") + "");
-                    }
-                    Console.WriteLine();
 
-                    BDEnd = DateTime.Now;
-                    Thread.Sleep(BDStart.AddMilliseconds(1000) - BDEnd);
-                    Console.WriteLine($"[{DateTime.UtcNow.ToString("dd/MM/yyyy_HH:mm:ss.fff")}]: 1sec downloaded in: {(BDEnd - BDStart).ToString("fff")}");
+                //stream.CopyTo(ffmpeg.StandardInput.BaseStream, 512);
 
-                }
-                Console.WriteLine("buffered");
+                var ffout = ffmpeg.StandardOutput.BaseStream;
+
+                //stream.CopyTo(vstream, buffer.Length);
+                var lenread = ffout.Read(buf, 0, buf.Length);
+                vstream.Write(buf, 0, lenread);
+
+                //vstream.Flush();
+                //vstream.WriteAsync(buffer, 0, buffer.Length).GetAwaiter().GetResult();
+                //vstream.FlushAsync().GetAwaiter().GetResult();
+
+                //foreach(var b in buffer)
+                //{
+                //    Console.Write(b.ToString("X2") + "");
+                //}
+                //Console.WriteLine();
+
+                BDEnd = DateTime.Now;
+                //Thread.Sleep(Math.Max((int)((BDStart.AddMilliseconds(1000) - BDEnd).TotalMilliseconds), 0));
+                //Console.WriteLine($"[{DateTime.UtcNow.ToString("dd/MM/yyyy_HH:mm:ss.fff")}]: 1sec downloaded in: {(BDEnd - BDStart).ToString("fff")}");
             }
             //File.WriteAllBytes($"test_{DateTime.UtcNow.ToString("dd_MM_yyyy_HH-mm")}.mp4", BufferFile.ToArray());
+            ctoksrc.Cancel();
             stream.Close();
             writer.Close();
             client.Close();
@@ -150,8 +193,8 @@ namespace CababgeBot.Tools.Qmusic
         private void confHeader(ref RestRequest request)
         {
             request.AddHeader("Host", "playerservices.streamtheworld.com");
-            request.AddHeader("X-Playback-Session-Id", sessionid);
-            request.AddHeader("icy-metadata","1");
+            request.AddHeader("X-Playback-Session-Id", this.sessionid);
+            request.AddHeader("icy-metadata", "1");
             request.AddHeader("Accept-Encoding", "identity");
             request.AddHeader("Accept-Language", "nl-be");
             request.AddHeader("connection", "keep-alive");
