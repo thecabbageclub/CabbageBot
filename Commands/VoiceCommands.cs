@@ -134,6 +134,24 @@ namespace CabbageBot.Commands
             await ctx.RespondAsync($"Connected to `{chn.Name}`");
         }
 
+        [Command("info"), Description("Get info about current track")]
+        public async Task Info(CommandContext ctx)
+        {
+            if(ChannelStreamPlaying.ContainsKey(ctx.Guild.Id) && ChannelStreamPlaying[ctx.Guild.Id])
+            {
+                //TODO: fix all of this mess xD
+                var resp = Qmusic.Instance.GetTrackInfo("qmusic_be");
+                var embed = new DiscordEmbedBuilder
+                {
+                    Color = DiscordColor.Red,
+                    Title = resp.played_tracks[0].title,
+                    Description = resp.played_tracks[0].artist.name + "\n" + resp.played_tracks[0].spotify_url,
+                    ImageUrl = "https://api.qmusic.be/" + resp.played_tracks[0].thumbnail
+                };
+                await ctx.RespondAsync(embed: embed);
+            }
+        }
+
         [Command("leave"), Description("Leaves a voice channel.")]
         public async Task Leave(CommandContext ctx)
         {
