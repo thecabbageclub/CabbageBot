@@ -32,7 +32,7 @@ namespace CababgeBot.Tools.Qmusic
         public void CancelPlayback() => this.shouldPlay = false;
 
         private RestClient Web { get; set; }
-        private static RestClient RestClientGetAvailableChannels { get; set; } = new RestClient("https://api.qmusic.be/")
+        private static RestClient RestApiClient { get; set; } = new RestClient("https://api.qmusic.be/")
         {
             UserAgent = "AppleCoreMedia/1.0.0.16G77 (iPhone; U; CPU OS 12_4 like Mac OS X; nl_be)"
         };
@@ -266,7 +266,7 @@ namespace CababgeBot.Tools.Qmusic
             var request = new RestRequest($"2.4/app/channels", Method.GET);
             //confHeader(ref request);
 
-            var response = RestClientGetAvailableChannels.Execute(request);
+            var response = RestApiClient.Execute(request);
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 return;
@@ -287,7 +287,7 @@ namespace CababgeBot.Tools.Qmusic
         {
             var request = new RestRequest($"2.4/tracks/plays?_station_id={channel}&limit=20&next=1", Method.GET);
 
-            var response = this.webq.Execute(request);
+            var response = RestApiClient.Execute(request);
 
             if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 return null;

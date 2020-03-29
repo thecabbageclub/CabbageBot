@@ -125,10 +125,10 @@ namespace CabbageBot.Commands
         [Command("info"), Description("Get info about current track")]
         public async Task Info(CommandContext ctx)
         {
-            if(ChannelStreamPlaying.ContainsKey(ctx.Guild.Id) && ChannelStreamPlaying[ctx.Guild.Id])
+            if (Qmusic.TryGetInstance(ctx.Guild.Id, out Qmusic instance))
             {
                 //TODO: fix all of this mess xD
-                var resp = Qmusic.Instance.GetTrackInfo("qmusic_be");
+                var resp = instance.GetTrackInfo("qmusic_be");
                 var embed = new DiscordEmbedBuilder
                 {
                     Color = DiscordColor.Red,
