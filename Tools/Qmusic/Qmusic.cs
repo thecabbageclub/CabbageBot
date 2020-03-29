@@ -132,10 +132,10 @@ namespace CababgeBot.Tools.Qmusic
             if (this.PlaybackTask != null)
                 await this.PlaybackTask;
 
-            Client.DebugLogger.LogMessage(LogLevel.Warning, "QMusic", "Waiting for playback to finish... Channel: " + this.Channel, DateTime.UtcNow);
+            this.Client.DebugLogger.LogMessage(LogLevel.Warning, "QMusic", "Waiting for playback to finish... Channel: " + this.Channel, DateTime.UtcNow);
 
             SpinWait.SpinUntil(() => !this.IsPlaying);
-            Client.DebugLogger.LogMessage(LogLevel.Warning, "QMusic", "Waiting for playback finished. Channel: " + this.Channel, DateTime.UtcNow);
+            this.Client.DebugLogger.LogMessage(LogLevel.Warning, "QMusic", "Waiting for playback finished. Channel: " + this.Channel, DateTime.UtcNow);
         }
 
         public static bool TryGetInstance(ulong guildId, out Qmusic instance)
@@ -238,14 +238,10 @@ namespace CababgeBot.Tools.Qmusic
 
                 var lenread = ffout.Read(buf, 0, buf.Length);
 
-                var bufferLengthLeft = pi.GetValue(vstream);
-
                 vstream.Write(buf, 0, lenread);
             }
 
             ctoksrc.Cancel();
-            
-            await VCon.WaitForPlaybackFinishAsync();
 
             stream.Close();
             writer.Close();
@@ -256,8 +252,11 @@ namespace CababgeBot.Tools.Qmusic
 
             if (!exitedInTime)
             {
-                Client.DebugLogger.LogMessage(LogLevel.Error, "QMusic", "ffmpeg didnt exit in time!", DateTime.UtcNow);
+                this.Client.DebugLogger.LogMessage(LogLevel.Error, "QMusic", "ffmpeg didnt exit in time!", DateTime.UtcNow);
             }
+
+
+            await this.VCon.WaitForPlaybackFinishAsync();
 
             this.IsPlaying = false;
         }

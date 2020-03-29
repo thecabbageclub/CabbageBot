@@ -1,9 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Collections.Generic;
+﻿using CabbageBot.Commands;
+using CabbageBot.Tools.WowUpdateChecker;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
@@ -11,11 +7,12 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.VoiceNext;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.VoiceNext.Codec;
 using Newtonsoft.Json;
-using CabbageBot.Commands;
-using CabbageBot.Tools.WowUpdateChecker;
+using System;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CabbageBot
 {
@@ -69,9 +66,9 @@ namespace CabbageBot
             UpdateChecker.Instance.Client = this.Client;
 
             //handlers
-            this.Client.Ready += this.Client_Ready;
-            this.Client.GuildAvailable += this.Client_GuildAvailable;
-            this.Client.ClientErrored += this.Client_ClientError;
+            this.Client.Ready += Client_Ready;
+            this.Client.GuildAvailable += Client_GuildAvailable;
+            this.Client.ClientErrored += Client_ClientError;
 
             //interactivity
             this.Client.UseInteractivity(new InteractivityConfiguration
@@ -92,8 +89,8 @@ namespace CabbageBot
 
             this.Commands = this.Client.UseCommandsNext(ccfg);
 
-            this.Commands.CommandExecuted += this.Commands_CommandExecuted;
-            this.Commands.CommandErrored += this.Commands_CommandErrored;
+            this.Commands.CommandExecuted += Commands_CommandExecuted;
+            this.Commands.CommandErrored += Commands_CommandErrored;
 
             //Command classes
 #if ISFERIB
@@ -107,7 +104,7 @@ namespace CabbageBot
 
 
             this.Voice = this.Client.UseVoiceNext();
-            
+
             //connect!
             await this.Client.ConnectAsync();
 
