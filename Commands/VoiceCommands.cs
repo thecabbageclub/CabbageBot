@@ -71,10 +71,6 @@ namespace CabbageBot.Commands
 
             if (index > -1 && index < Qmusic.Instance.channels.Count)
             {
-                //stop playing
-                if (ChannelStreamPlaying.ContainsKey(ctx.Guild.Id))
-                    ChannelStreamPlaying[ctx.Guild.Id] = false;
-
                 if (ChannelStreamSettings.ContainsKey(ctx.Guild.Id))
                     ChannelStreamSettings[ctx.Guild.Id] = index;
                 else
@@ -83,6 +79,15 @@ namespace CabbageBot.Commands
                 var split = Qmusic.Instance.channels[index].source.Split('/');
                 await ctx.RespondAsync($"Channel change to ``{split[split.Length - 1].Replace("AAC.aac", "").ToLower()}``");
 
+                //call play
+                if (ChannelStreamPlaying.ContainsKey(ctx.Guild.Id))
+                {
+                    if (ChannelStreamPlaying[ctx.Guild.Id])
+                    {
+                        ChannelStreamPlaying[ctx.Guild.Id] = false; //interrupt old one
+                        Play(ctx);
+                    }
+                }
             }
             else
             {

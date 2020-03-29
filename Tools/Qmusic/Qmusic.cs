@@ -115,8 +115,7 @@ namespace CababgeBot.Tools.Qmusic
                 }
             });
 
-            //byte[] buf = new byte[8192 * 16];
-            byte[] buf = new byte[8192];
+            byte[] buf = new byte[8192 * 16];
             DateTime startTime = DateTime.UtcNow;   //timeout after 30 min
 
             while (status.ContainsKey(GuildID) && status[GuildID] && startTime.AddMinutes(30) > DateTime.UtcNow)
