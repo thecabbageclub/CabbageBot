@@ -135,4 +135,164 @@ namespace CababgeBot.Tools.Qmusic
     {
         public List<Datum> data { get; set; }
     }
+
+    public class Pagination
+    {
+        public string next { get; set; }
+        public string previous { get; set; }
+    }
+
+    public class Country
+    {
+        public string code { get; set; }
+        public string name { get; set; }
+    }
+
+    public class Artist
+    {
+        public string bio { get; set; }
+        public Country country { get; set; }
+        public string facebook_url { get; set; }
+        public int id { get; set; }
+        public string instagram_url { get; set; }
+        public string name { get; set; }
+        public string original_name { get; set; }
+        public string photo { get; set; }
+        public string slug { get; set; }
+        public string twitter_url { get; set; }
+        public string website { get; set; }
+        public string snapchat { get; set; }
+    }
+
+    public class Facts
+    {
+    }
+
+    public class Hooks
+    {
+        public string m4a { get; set; }
+    }
+
+    public class Country2
+    {
+        public string code { get; set; }
+        public string name { get; set; }
+    }
+
+    public class Artist2
+    {
+        public string bio { get; set; }
+        public Country2 country { get; set; }
+        public string facebook_url { get; set; }
+        public int id { get; set; }
+        public string instagram_url { get; set; }
+        public string name { get; set; }
+        public string original_name { get; set; }
+        public string photo { get; set; }
+        public string slug { get; set; }
+        public string snapchat { get; set; }
+        public string twitter_url { get; set; }
+        public string website { get; set; }
+    }
+
+    public class Facts2
+    {
+    }
+
+    public class Hooks2
+    {
+        public string m4a { get; set; }
+    }
+
+    public class Country3
+    {
+        public string code { get; set; }
+        public string name { get; set; }
+    }
+
+    public class Artist3
+    {
+        public string bio { get; set; }
+        public Country3 country { get; set; }
+        public string facebook_url { get; set; }
+        public int id { get; set; }
+        public string instagram_url { get; set; }
+        public string name { get; set; }
+        public string photo { get; set; }
+        public string twitter_url { get; set; }
+        public string website { get; set; }
+    }
+
+    public class SubArtist
+    {
+        public Artist3 artist { get; set; }
+    }
+
+    public class Videos
+    {
+        public string id { get; set; }
+        public string tag { get; set; }
+        public string type { get; set; }
+    }
+
+    public class YoutubeIds
+    {
+        public string @default { get; set; }
+    }
+
+    public class Next
+    {
+        public string affiliate_url { get; set; }
+        public Artist2 artist { get; set; }
+        public Facts2 facts { get; set; }
+        public Hooks2 hooks { get; set; }
+        public string selector_code { get; set; }
+        public string slug { get; set; }
+        public string spotify_url { get; set; }
+        public List<SubArtist> sub_artists { get; set; }
+        public string thumbnail { get; set; }
+        public string title { get; set; }
+        public Videos videos { get; set; }
+        public YoutubeIds youtube_ids { get; set; }
+    }
+
+    public class Videos2
+    {
+        public string id { get; set; }
+        public string tag { get; set; }
+        public string type { get; set; }
+    }
+
+    public class YoutubeIds2
+    {
+        public string @default { get; set; }
+    }
+
+    public class PlayedTrack
+    {
+        public List<object> active_editions { get; set; }
+        public string affiliate_url { get; set; }
+        public Artist artist { get; set; }
+        public List<object> current_editions { get; set; }
+        public Facts facts { get; set; }
+        public Hooks hooks { get; set; }
+        public Next next { get; set; }
+        public DateTime played_at { get; set; }
+        public string release_year { get; set; }
+        public string selector_code { get; set; }
+        public string slug { get; set; }
+        public string spotify_url { get; set; }
+        public List<object> sub_artists { get; set; }
+        public string thumbnail { get; set; }
+        public string title { get; set; }
+        public Videos2 videos { get; set; }
+        public YoutubeIds2 youtube_ids { get; set; }
+        public string videoclip { get; set; }
+    }
+
+    public class trackResponse
+    {
+        public Pagination pagination { get; set; }
+        public List<PlayedTrack> played_tracks { get; set; }
+    }
 }

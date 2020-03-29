@@ -283,6 +283,17 @@ namespace CababgeBot.Tools.Qmusic
             }
             qmusicRadioChannels = aacStreams;
         }
+        public trackResponse GetTrackInfo(string channel)
+        {
+            var request = new RestRequest($"2.4/tracks/plays?_station_id={channel}&limit=20&next=1", Method.GET);
+
+            var response = this.webq.Execute(request);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                return null;
+            return JsonConvert.DeserializeObject<trackResponse>(response.Content);
+        }
+
         private void ConfigureHeader(ref RestRequest request)
         {
             request.AddHeader("Host", "playerservices.streamtheworld.com");
