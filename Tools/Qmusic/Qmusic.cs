@@ -225,12 +225,20 @@ namespace CababgeBot.Tools.Qmusic
 
             var t = Task.Run(() =>
             {
-                var buf2 = new byte[1024];
-                while (!ctok.IsCancellationRequested) // cancel via cancellation token so that the while loop which writes to discord cant get stuck on reading if no data is supplied anymore.
+                try
                 {
-                    var len = stream.Read(buf2, 0, buf2.Length);
-                    ffmpeg.StandardInput.BaseStream.Write(buf2, 0, len);
+                    var buf2 = new byte[1024];
+                    while (!ctok.IsCancellationRequested) // cancel via cancellation token so that the while loop which writes to discord cant get stuck on reading if no data is supplied anymore.
+                    {
+                        var len = stream.Read(buf2, 0, buf2.Length);
+                        ffmpeg.StandardInput.BaseStream.Write(buf2, 0, len);
+                    }
                 }
+                catch
+                {
+                    //It throws exception when canceled, just ignore?
+                }
+                
             });
 
             byte[] buf = new byte[8192 * 16];
