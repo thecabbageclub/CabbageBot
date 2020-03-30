@@ -4,6 +4,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.VoiceNext;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -30,7 +31,7 @@ namespace CabbageBot.Commands
 
             for (int i = 0; i < Qmusic.QmusicRadioChannels.Count; i++)
             {
-                var split = Qmusic.QmusicRadioChannels[i].source.Split('/');
+                var split = Qmusic.QmusicRadioChannels[i].data.streams.aac.FirstOrDefault().source.Split('/');
                 listString += $"{(i + 1).ToString("00")} - {split[split.Length - 1].Replace("AAC.aac", "").ToLower()}\n";
             }
 
@@ -62,7 +63,7 @@ namespace CabbageBot.Commands
                 else
                     ChannelStreamSettings.Add(ctx.Guild.Id, index);
 
-                var split = Qmusic.QmusicRadioChannels[index].source.Split('/');
+                var split = Qmusic.QmusicRadioChannels[index].data.streams.aac.FirstOrDefault().source.Split('/');
                 await ctx.RespondAsync($"Channel change to ``{split[split.Length - 1].Replace("AAC.aac", "").ToLower()}``");
 
                 if (Qmusic.TryGetInstance(ctx.Guild.Id, out Qmusic instance)) // if instance is found
@@ -127,16 +128,24 @@ namespace CabbageBot.Commands
         {
             if (Qmusic.TryGetInstance(ctx.Guild.Id, out Qmusic instance))
             {
-                //TODO: fix all of this mess xD
-                var resp = instance.GetTrackInfo("qmusic_be");
-                var embed = new DiscordEmbedBuilder
+                try
                 {
-                    Color = DiscordColor.Red,
-                    Title = resp.played_tracks[0].title,
-                    Description = resp.played_tracks[0].artist.name + "\n" + resp.played_tracks[0].spotify_url,
-                    ImageUrl = "https://api.qmusic.be/" + resp.played_tracks[0].thumbnail
-                };
-                await ctx.RespondAsync(embed: embed);
+                    //TODO: fix all of this mess xD
+                    var resp = instance.GetTrackInfo(instance.QChannelIndex);
+                    var embed = new DiscordEmbedBuilder
+                    {
+                        Color = DiscordColor.Red,
+                        Title = resp.played_tracks[0].title,
+                        Description = resp.played_tracks[0].artist.name + "\n" + resp.played_tracks[0].spotify_url,
+                        ImageUrl = "https://api.qmusic.be/" + resp.played_tracks[0].thumbnail
+                    };
+                    await ctx.RespondAsync(embed: embed);
+                }
+                catch (Exception e)
+                {
+                    await ctx.RespondAsync("Failed obtaining info");
+                }
+                
             }
         }
 

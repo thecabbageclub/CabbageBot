@@ -27,7 +27,7 @@ namespace CababgeBot.Tools.Qmusic
         public Task PlaybackTask = null;
 
         private bool shouldPlay = true;
-        private int qChannelIndex = -1;
+        private int qChannelIndex = 0;
 
         public void CancelPlayback() => this.shouldPlay = false;
 
@@ -45,8 +45,8 @@ namespace CababgeBot.Tools.Qmusic
 
         private static DateTime LastStreamsListUpdate = DateTime.MinValue;
 
-        private static List<Aac> qmusicRadioChannels;
-        public static List<Aac> QmusicRadioChannels
+        private static List<Datum> qmusicRadioChannels;
+        public static List<Datum> QmusicRadioChannels
         {
             get
             {
@@ -56,11 +56,16 @@ namespace CababgeBot.Tools.Qmusic
                     UpdateQMusicRadioChannels();
                 }
 
-                return qmusicRadioChannels ?? new List<Aac>();
+                return qmusicRadioChannels ?? new List<Datum>();
             }
             set => qmusicRadioChannels = value;
         }
         public bool IsPlaying { get; private set; }
+
+        public int QChannelIndex
+        {
+            get { return qChannelIndex; }
+        }
 
         public Qmusic(DiscordChannel channel, DiscordClient client)
         {
@@ -154,7 +159,7 @@ namespace CababgeBot.Tools.Qmusic
             string url = $"api/livestream-redirect/QMUSICAAC.aac?uuid={uuid}&pname={appname}&dist={dist}";
             if (QmusicRadioChannels.Count > 0 && index > -1 && index < QmusicRadioChannels.Count - 1)
             {
-                url = QmusicRadioChannels[index].source.Replace("https://playerservices.streamtheworld.com/", "");
+                url = QmusicRadioChannels[index].data.streams.aac.FirstOrDefault().source.Replace("https://playerservices.streamtheworld.com/", "");
             }
             var request = new RestRequest(url, Method.GET);
             ConfigureHeader(ref request);
@@ -273,19 +278,16 @@ namespace CababgeBot.Tools.Qmusic
 
             var result = JsonConvert.DeserializeObject<channelsResponse>(response.Content);
 
-            List<Aac> aacStreams = new List<Aac>();
-            foreach (var d in result.data)
-            {
-                if (d.data != null && d.data.streams != null && d.data.streams.aac != null)
-                {
-                    aacStreams.Add(d.data.streams.aac.FirstOrDefault());
-                }
-            }
-            qmusicRadioChannels = aacStreams;
+            qmusicRadioChannels = result.data;
         }
-        public trackResponse GetTrackInfo(string channel)
+        public trackResponse GetTrackInfo(int index = -1)
         {
-            var request = new RestRequest($"2.4/tracks/plays?_station_id={channel}&limit=20&next=1", Method.GET);
+            string stationid = $"qmusic_be";
+            if (QmusicRadioChannels.Count > 0 && index > -1 && index < QmusicRadioChannels.Count - 1)
+            {
+                stationid = QmusicRadioChannels[index].data.station_id;
+            }
+            var request = new RestRequest($"2.4/tracks/plays?_station_id={stationid}&limit=20&next=1", Method.GET);
 
             var response = RestApiClient.Execute(request);
 
