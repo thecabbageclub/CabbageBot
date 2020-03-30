@@ -12,6 +12,8 @@ The bot can obtain live music from Qmusic (Belgium radio) and stream it into dis
 
 ``qmusic channel x``: Sets the current channel/stream to x
 
+*NOTE: qmusic is a subcommand, not the prefix!!*
+
 # Example Usage
 ![Qmusic example bot commads](https://ferib.dev/img/blog/qmusic_bot_commands_example.png)
 
