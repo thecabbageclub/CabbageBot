@@ -180,8 +180,6 @@ namespace CababgeBot.Tools.Qmusic
             this.shouldPlay = true;
             this.IsPlaying = true;
 
-            //string requestString = $"GET /{split[split.Length-1]} HTTP/1.1\r\n";
-
             string hosteDNS = url.Replace("https://", "").Split('/')[0];
             var split = url.Split('/');
             string requestString = $"GET /{split[split.Length - 1]} HTTP/1.1\r\n";
