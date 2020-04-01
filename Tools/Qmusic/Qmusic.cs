@@ -211,7 +211,8 @@ namespace CababgeBot.Tools.Qmusic
 
             var psi = new ProcessStartInfo
             {
-                FileName = "ffmpeg.exe",
+                FileName = "ffmpeg",
+                //FileName = "ffmpeg.exe", //Might use this one when on windows
                 Arguments = $@"-i - -ac 2 -f s16le -ar 48000 pipe:1",
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
