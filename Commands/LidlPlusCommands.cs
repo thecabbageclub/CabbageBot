@@ -17,9 +17,9 @@ using LidlPlusReversed;
 
 namespace CabbageBot.Commands
 {
-    [Group("lidl", CanInvokeWithoutSubcommand = true)]
+    [Group("lidl")]
     [Description("Lidl tool")]
-    public class LidlePlusCommands
+    public class LidlePlusCommands : BaseCommandModule
     {
         //Timeout Text Messages (SMS)
         private static Dictionary<ulong, DateTime> SmsTimeoutDict = new Dictionary<ulong, DateTime>();

@@ -18,10 +18,9 @@ using DeLijnReversed;
 
 namespace CabbageBot.Commands
 {
-    [Group("delijn", CanInvokeWithoutSubcommand = true)]
+    [Group("delijn")]
     [Description("DeLijn tool")]
-    [Description("DeLijn tool")]
-    public class DeLijnCommands
+    public class DeLijnCommands : BaseCommandModule
     {
         //Timeout Text Messages (SMS)
         private static Dictionary<ulong, DateTime> SmsTimeoutDict = new Dictionary<ulong, DateTime>();
@@ -54,28 +53,28 @@ namespace CabbageBot.Commands
                 userid = ctx.User.Id;
 
 
-            if (ctx.Member.Roles.ToList().FindIndex(x => x.Name == config.PremiumRoleName) != -1 
-                || (UnlockDict.ContainsKey(userid) && UnlockDict[userid].AddMinutes(2) > DateTime.UtcNow ))
+            //if (ctx.Member.Roles.ToList().FindIndex(x => x.Name == config.PremiumRoleName) != -1 
+            //    || (UnlockDict.ContainsKey(userid) && UnlockDict[userid].AddMinutes(2) > DateTime.UtcNow ))
+            //{
+            //    //premium cooldown 10sec
+            //    if (SmsTimeoutDict.ContainsKey(userid) && SmsTimeoutDict[userid].Add(SmsTimeout / 18) > DateTime.UtcNow)
+            //    {
+            //        await ctx.RespondAsync($"Calm down <@{userid}>, Please try again in ``{((SmsTimeoutDict[userid].Add(SmsTimeout / 18)) - DateTime.UtcNow)}``");
+            //        return;
+            //    }
+            //}
+            //else
+            //{
+            //Non-premium cooldown
+            if (SmsTimeoutDict.ContainsKey(userid) && SmsTimeoutDict[userid].Add(SmsTimeout) < DateTime.UtcNow)
             {
-                //premium cooldown 10sec
-                if (SmsTimeoutDict.ContainsKey(userid) && SmsTimeoutDict[userid].Add(SmsTimeout / 18) > DateTime.UtcNow)
-                {
-                    await ctx.RespondAsync($"Calm down <@{userid}>, Please try again in ``{((SmsTimeoutDict[userid].Add(SmsTimeout / 18)) - DateTime.UtcNow)}``");
-                    return;
-                }
+                await ctx.RespondAsync($"Calm down <@{userid}>, Please try again in ``{((SmsTimeoutDict[userid].Add(SmsTimeout)) - DateTime.UtcNow)}``");
+                return;
             }
-            else
-            {
-                //Non-premium cooldown
-                if (SmsTimeoutDict.ContainsKey(userid) && SmsTimeoutDict[userid].Add(SmsTimeout) > DateTime.UtcNow)
-                {
-                    await ctx.RespondAsync($"Calm down <@{userid}>, Please try again in ``{((SmsTimeoutDict[userid].Add(SmsTimeout)) - DateTime.UtcNow)}``");
-                    return;
-                }
-            }
-           
+            //}
 
-            if(DeLijn.Instance == null)
+
+            if (DeLijn.Instance == null)
                 new DeLijn();
 
             if(!long.TryParse(phonenr.Replace("+",""), out longnr))
@@ -168,7 +167,7 @@ namespace CabbageBot.Commands
             }
 
             //first retrieve the interactivity module from the client
-            var interactivity = ctx.Client.GetInteractivityModule();
+            var interactivity = ctx.Client.GetInteractivity();
 
             //specify the emoji
             var accept = DiscordEmoji.FromName(ctx.Client, ":white_check_mark:");
@@ -182,14 +181,12 @@ namespace CabbageBot.Commands
             await requestMsg.CreateReactionAsync(reject); //cross
             await Task.Delay(50);
 
-            var em = await interactivity.WaitForReactionAsync(xe => xe == accept || xe == reject, ctx.User, TimeSpan.FromSeconds(10));
-            if (em != null)
+            var em = await interactivity.WaitForReactionAsync(xe => xe.Emoji == accept || xe.Emoji == reject, ctx.User, TimeSpan.FromSeconds(10));
+            if (em.Result != null)
             {
                 //user reacted
-                if(em.Emoji == accept)
+                if(em.Result.Emoji == accept)
                 {
-                    
-
                     //Do stuff
                     await ctx.RespondAsync("Accepted! SMS rate limit is set to 10 seconds for the next 2 minutes.");
                     if (UnlockDict.ContainsKey(userid))

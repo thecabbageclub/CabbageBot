@@ -20,8 +20,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|x64.ActiveCfg = Debug|x64
-		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|x64.Build.0 = Debug|x64
+		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|x64.Build.0 = Debug|Any CPU
 		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|x86.ActiveCfg = Debug|x86
 		{3F1619E1-F616-48D6-8C86-3B371E05E518}.Debug|x86.Build.0 = Debug|x86
 		{3F1619E1-F616-48D6-8C86-3B371E05E518}.isFerib|Any CPU.ActiveCfg = isFerib|Any CPU
