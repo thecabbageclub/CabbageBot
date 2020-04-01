@@ -6,6 +6,7 @@ obj/*
 .vs/*
 .idea/*
 .idea
+*.sln
 
 config.json
 

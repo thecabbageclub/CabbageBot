@@ -3,9 +3,15 @@
 
 The CabbageBot is a Discord Bot that is used to give an interactive demonstration for some of our projects.
 
+# Features
+- [~~DeLijn~~](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/DeLijn)
+- [~~LidlPlus~~](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/LidlPlus)
+- [Wow Update Checker](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/WowUpdateChecker)
+- [Qmusic](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/Qmusic)
+
 
 # More Project
-You can find all my projects at https://ferib.dev/ 
+You can find more projects at [Ferib's Portfolio](https://ferib.dev/)
 
-Blogposts can be found at https://ferib.dev/portfolio.php?t=Blog+post
+Blogposts & writeups can be found at [Ferib's Blog](https://ferib.dev/portfolio.php?t=Blog+post)
 

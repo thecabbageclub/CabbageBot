@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
+﻿using CabbageBot.Commands;
+using CabbageBot.Tools.WowUpdateChecker;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
@@ -10,19 +7,21 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.VoiceNext;
-using DSharpPlus.VoiceNext.Codec;
 using Newtonsoft.Json;
-using CabbageBot.Commands;
-using CabbageBot.Tools.WowUpdateChecker;
+using System;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CabbageBot
 {
     public class Program
     {
         public DiscordClient Client { get; set; }
-        public CommandsNextModule Commands { get; set; }
-        public InteractivityModule Interactivity { get; set; }
-        //public VoiceNextClient Voice { get; set; } //comming soon?
+        public CommandsNextExtension Commands { get; set; }
+        public InteractivityExtension Interactivity { get; set; }
+        public VoiceNextExtension Voice { get; set; }
 
         public static void Main(string[] args)
         {
@@ -67,15 +66,15 @@ namespace CabbageBot
             UpdateChecker.Instance.Client = this.Client;
 
             //handlers
-            this.Client.Ready += this.Client_Ready;
-            this.Client.GuildAvailable += this.Client_GuildAvailable;
-            this.Client.ClientErrored += this.Client_ClientError;
+            this.Client.Ready += Client_Ready;
+            this.Client.GuildAvailable += Client_GuildAvailable;
+            this.Client.ClientErrored += Client_ClientError;
 
             //interactivity
             this.Client.UseInteractivity(new InteractivityConfiguration
             {
-                PaginationBehaviour = TimeoutBehaviour.Ignore,
-                PaginationTimeout = TimeSpan.FromMinutes(5),
+                PaginationBehaviour = DSharpPlus.Interactivity.Enums.PaginationBehaviour.Ignore,
+                //PaginationTimeout = TimeSpan.FromMinutes(5),
                 Timeout = TimeSpan.FromMinutes(2) //2min timeout
             });
 
@@ -83,32 +82,28 @@ namespace CabbageBot
             var ccfg = new CommandsNextConfiguration
             {
 
-                StringPrefix = cfgjson.CommandPrefix,
+                StringPrefixes = new[] { cfgjson.CommandPrefix },
                 EnableDms = true,   //DM's allowed?? might be handy for privacy.. but we cannot check roles....
                 EnableMentionPrefix = true
             };
 
             this.Commands = this.Client.UseCommandsNext(ccfg);
 
-            this.Commands.CommandExecuted += this.Commands_CommandExecuted;
-            this.Commands.CommandErrored += this.Commands_CommandErrored;
+            this.Commands.CommandExecuted += Commands_CommandExecuted;
+            this.Commands.CommandErrored += Commands_CommandErrored;
 
             //Command classes
-            //this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
 #if ISFERIB
             this.Commands.RegisterCommands<DeLijnCommands>();
-            this.Commands.RegisterCommands<LidlePlusCommands>();
+            this.Commands.RegisterCommands<LidlePlusCommands>(); //Try not to get sued here ;)
 #endif
             this.Commands.RegisterCommands<BitcoinCommands>();
             this.Commands.RegisterCommands<WowCommands>();
 
-            /*
-            var vcfg = new VoiceNextConfiguration
-            {
-                VoiceApplication = VoiceApplication.Music
-            };
-            this.Voice = this.Client.UseVoiceNext(vcfg);
-            */
+            this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
+
+
+            this.Voice = this.Client.UseVoiceNext();
 
             //connect!
             await this.Client.ConnectAsync();

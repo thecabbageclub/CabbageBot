@@ -20,6 +20,7 @@ namespace CabbageBot.Commands
 {
     [Group("delijn", CanInvokeWithoutSubcommand = true)]
     [Description("DeLijn tool")]
+    [Description("DeLijn tool")]
     public class DeLijnCommands
     {
         //Timeout Text Messages (SMS)

@@ -11,9 +11,10 @@ using CabbageBot.Tools.Bitcoin;
 
 namespace CabbageBot.Commands
 {
-    [Group("btc", CanInvokeWithoutSubcommand = true)]
+    //[Group("btc", CanInvokeWithoutSubcommand = true)]
+    [Group("btc")]
     [Description("Bitcoin wallet tool")]
-    public class BitcoinCommands
+    public class BitcoinCommands : BaseCommandModule
     {
         //cached addresses
         private static Dictionary<ulong, BitcoinLicense> BtcLicenseCache = new Dictionary<ulong, BitcoinLicense>();
