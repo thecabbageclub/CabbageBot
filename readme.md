@@ -8,6 +8,7 @@ The CabbageBot is a Discord Bot that is used to give an interactive demonstratio
 - [~~LidlPlus~~](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/LidlPlus)
 - [Wow Update Checker](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/WowUpdateChecker)
 - [Qmusic](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/Qmusic)
+- [FriesHit](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/McDonald/FriesHit)
 
 
 # More Project
