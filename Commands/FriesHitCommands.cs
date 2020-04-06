@@ -33,7 +33,7 @@ namespace CabbageBot.Commands
 
             for (int i = 0; i < leaderboard.topScoreData.Count; i++)
             {
-                listString += $"{(i + 1).ToString("00")} - {leaderboard.topScoreData[i].firstName} .{leaderboard.topScoreData[i].lastName}  {leaderboard.topScoreData[i].score.PadLeft(25, ' ')}\n";
+                listString += $"{leaderboard.topScoreData[i].score.PadLeft(6, ' ')} - {leaderboard.topScoreData[i].firstName} .{leaderboard.topScoreData[i].lastName} - {(i + 1).ToString("00")}\n";
             }
 
             var embed = new DiscordEmbedBuilder
