@@ -99,6 +99,7 @@ namespace CabbageBot
 #endif
             this.Commands.RegisterCommands<BitcoinCommands>();
             this.Commands.RegisterCommands<WowCommands>();
+            this.Commands.RegisterCommands<FriesHitCommands>();
 
             this.Commands.RegisterCommands<VoiceCommands>(); //NOTE: Q-music comming soon?
 
