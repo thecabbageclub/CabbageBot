@@ -3,6 +3,14 @@
 
 The CabbageBot is a Discord Bot that is used to give an interactive demonstration for some of our projects.
 
+But due to a large request, I decided to make the bot public available to any discord server.
+
+# How to 
+First, invite the bot to your server using [this invite](https://discordapp.com/oauth2/authorize?client_id=689510366958321878&scope=bot&permissions=8) link,
+Now you can make use of the help command ``wet help`` to get a full list of commands.
+
+Below is a list of features that give more details about the functionality of the bot.
+
 # Features
 - [~~DeLijn~~](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/DeLijn)
 - [~~LidlPlus~~](https://github.com/thecabbageclub/CabbageBot/tree/master/Tools/LidlPlus)
